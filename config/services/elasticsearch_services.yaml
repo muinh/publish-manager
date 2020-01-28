@@ -1,0 +1,14 @@
+# This file needed, because we could not use parent in services that defined in services.yml
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+
+    _instanceof:
+        App\Service\ElasticSearch\TypeRepositoryInterface:
+            tags: ['app.elastic_search_type_repository']
+
+    App\Service\ElasticSearch\ElasticSearchTypeRepositoryResolver:
+        public: true
+        arguments: [!tagged app.elastic_search_type_repository]

@@ -1,0 +1,13 @@
+framework:
+    secret: '%env(APP_SECRET)%'
+    router:
+        resource: '%kernel.project_dir%/config/routes.yaml'
+        strict_requirements: ~
+    serializer: { enable_annotations: true }
+    default_locale: en
+    session:
+        handler_id: session.handler.native_file
+        save_path: '%kernel.project_dir%/var/sessions/%kernel.environment%'
+    fragments: ~
+    php_errors:
+        log: true

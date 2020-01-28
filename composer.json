@@ -1,0 +1,61 @@
+{
+    "name": "avalon/front-manager",
+    "license": "proprietary",
+    "type": "project",
+    "require": {
+        "php": ">=7.1",
+        "aws/aws-sdk-php-symfony": "^2.0",
+        "e-moe/guzzle6-bundle": "^1.1",
+        "elasticsearch/elasticsearch": "^6.0@beta",
+        "graylog2/gelf-php": "^1.5",
+        "symfony/console": "^4.0",
+        "symfony/flex": "^1.1",
+        "symfony/framework-bundle": "^4.0",
+        "symfony/monolog-bundle": "^3.1.0",
+        "symfony/process": "^4.0",
+        "symfony/serializer-pack": "^1.0",
+        "symfony/yaml": "^4.0"
+    },
+    "require-dev": {
+        "roave/security-advisories": "dev-master",
+        "symfony/dotenv": "^4.0",
+        "symfony/var-dumper": "^4.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "App\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "App\\Tests\\": "tests/"
+        }
+    },
+    "conflict": {
+        "symfony/symfony": "*"
+    },
+    "config": {
+        "preferred-install": {
+            "*": "dist"
+        },
+        "sort-packages": true
+    },
+    "scripts": {
+        "auto-scripts": {
+            "cache:clear": "symfony-cmd",
+            "assets:install --symlink --relative %PUBLIC_DIR%": "symfony-cmd"
+        },
+        "post-install-cmd": [
+            "@auto-scripts"
+        ],
+        "post-update-cmd": [
+            "@auto-scripts"
+        ]
+    },
+    "extra": {
+        "symfony": {
+            "require": "^4.0",
+            "allow-contrib": false
+        }
+    }
+}

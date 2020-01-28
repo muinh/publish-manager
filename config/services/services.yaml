@@ -1,0 +1,199 @@
+parameters:
+    locale: en
+    secret: '%env(APP_SECRET)%'
+    # API
+    cms_admin_api_token: '%env(CMS_ADMIN_API_TOKEN)%'
+    cms_admin_api_base_uri: '%env(CMS_ADMIN_HOST)%/api'
+    cms_admin_api_post_published_uri: '%cms_admin_api_base_uri%/post/published/'
+    cms_admin_api_categories_published_uri: '%cms_admin_api_base_uri%/categories/published/'
+    cms_admin_api_seo_tags_published_uri: '%cms_admin_api_base_uri%/seo-tags/published/'
+    cms_admin_api_seo_tags_groups_published_uri: '%cms_admin_api_base_uri%/seo-tags-groups/published/'
+    cms_admin_api_analytic_script_published_uri: '%cms_admin_api_base_uri%/analytic-script/published/'
+    cms_admin_api_ads_shower_published_uri: '%cms_admin_api_base_uri%/ads-shower/published/'
+    cms_admin_api_config_published_uri: '%cms_admin_api_base_uri%/config/published/'
+    cms_admin_api_fake_author_published_uri: '%cms_admin_api_base_uri%/fake-author/published/'
+
+services:
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        public: false
+        bind:
+            $projectIndex: '%env(PROJECT_SHORT_NAME)%'
+
+    _instanceof:
+        App\AwsSqs\SqsQueueHandlerInterface:
+            tags: ['app.sqs_queue_handler']
+
+    App\:
+        resource: '%kernel.project_dir%/src/*'
+        exclude: '%kernel.project_dir%/src/{Entity,Repository,Tests,Model}'
+
+    App\Controller\:
+        resource: '%kernel.project_dir%/src/Controller'
+        public: true
+        tags: ['controller.service_arguments']
+
+    # SERVICES
+    App\Service\PostService:
+        lazy: true
+        arguments:
+            - '%cms_admin_api_post_published_uri%'
+
+    App\Service\CategoryService:
+        lazy: true
+        arguments:
+            - '%cms_admin_api_categories_published_uri%'
+
+    App\Service\SeoTagService:
+        lazy: true
+        arguments:
+            - '%cms_admin_api_seo_tags_published_uri%'
+
+    App\Service\SeoTagsGroupsService:
+        lazy: true
+        arguments:
+            - '%cms_admin_api_seo_tags_groups_published_uri%'
+
+    App\Service\AdsShowerService:
+        lazy: true
+        arguments:
+            - '%cms_admin_api_ads_shower_published_uri%'
+
+    App\Service\AnalyticScriptService:
+        lazy: true
+        arguments:
+            - '%cms_admin_api_analytic_script_published_uri%'
+
+    App\Service\ConfigService:
+        lazy: true
+        arguments:
+            - '%cms_admin_api_config_published_uri%'
+
+    App\Service\FakeAuthorService:
+        lazy: true
+        arguments:
+            - '%cms_admin_api_fake_author_published_uri%'
+
+    App\Service\ElasticSearch\ElasticSearchClientFactory:
+        lazy: true
+        arguments:
+            - { hosts: ['%env(ELASTICSEARCH_HOST)%'] }
+
+    App\Service\HttpClientAdapter:
+        lazy: true
+        arguments:
+            - '@guzzle.client'
+            - '@serializer'
+            - '%cms_admin_api_token%'
+
+    App\Command\HealthCheckCommand:
+        arguments:
+            - '@App\Service\ElasticSearch\ElasticSearchClientFactory'
+            - '%env(CMS_ADMIN_HOST)%'
+
+    App\Command\SqsQueueWorkerCommand:
+        arguments:
+            - '%kernel.project_dir%'
+            - '%kernel.environment%'
+        tags:
+            - { name: console.command }
+
+    App\AwsSqs\SqsQueueManager:
+        arguments:
+            - '%env(AWS_SQS_QUEUE_ENDPOINT)%'
+
+    App\AwsSqs\SqsQueueHandlerResolver:
+        public: true
+        arguments: [!tagged app.sqs_queue_handler]
+
+    App\AwsSqs\QueuePublishers\SqsQueuePublisherInterface:
+        public: true
+
+    App\AwsSqs\QueuePublishers\PostPublisher:
+        lazy: true
+
+    App\AwsSqs\QueuePublishers\AdsShowerPublisher:
+        lazy: true
+
+    App\AwsSqs\QueuePublishers\AnalyticScriptPublisher:
+        lazy: true
+
+    App\AwsSqs\QueuePublishers\CategoryPublisher:
+        lazy: true
+
+    App\AwsSqs\QueuePublishers\SeoTagPublisher:
+        lazy: true
+
+    App\AwsSqs\QueuePublishers\SeoTagsGroupPublisher:
+        lazy: true
+
+    App\AwsSqs\QueuePublishers\ConfigPublisher:
+        lazy: true
+
+    App\AwsSqs\QueuePublishers\FakeAuthorPublisher:
+        lazy: true
+
+    App\EventListener\BodyListener:
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest}
+
+    App\EventListener\PostEventSubscriber:
+        arguments:
+            - '@App\AwsSqs\QueuePublishers\PostPublisher'
+
+    App\EventListener\CategoryEventSubscriber:
+        arguments:
+            - '@App\AwsSqs\QueuePublishers\CategoryPublisher'
+
+    App\EventListener\AnalyticScriptEventSubscriber:
+        arguments:
+            - '@App\AwsSqs\QueuePublishers\AnalyticScriptPublisher'
+
+    App\EventListener\AdsShowerEventSubscriber:
+        arguments:
+            - '@App\AwsSqs\QueuePublishers\AdsShowerPublisher'
+
+    App\EventListener\SeoTagEventSubscriber:
+        arguments:
+            - '@App\AwsSqs\QueuePublishers\SeoTagPublisher'
+
+    App\EventListener\SeoTagsGroupEventSubscriber:
+        arguments:
+            - '@App\AwsSqs\QueuePublishers\SeoTagsGroupPublisher'
+
+    App\EventListener\ConfigEventSubscriber:
+        arguments:
+            - '@App\AwsSqs\QueuePublishers\ConfigPublisher'
+
+    App\EventListener\FakeAuthorEventSubscriber:
+        arguments:
+            - '@App\AwsSqs\QueuePublishers\FakeAuthorPublisher'
+
+    gelf.validator:
+        class: Gelf\MessageValidator
+
+    gelf.transport:
+        class: Gelf\Transport\UdpTransport
+        arguments:
+            - '%env(GRAYLOG_HOSTNAME)%'
+            - '%env(GRAYLOG_PORT)%'
+
+    gelf.publisher:
+        class: Gelf\Publisher
+        arguments:
+            - '@gelf.transport'
+            - '@gelf.validator'
+
+    monolog.gelf_handler:
+        class: Monolog\Handler\GelfHandler
+        arguments:
+            - '@gelf.publisher'
+            - '%env(MONOLOG_GELF_DEBUG_LEVEL)%'
+
+    App\Service\Logger\Processor\TagProcessor:
+        lazy: true
+        arguments:
+            - '%env(GRAYLOG_TAG)%'
+        tags:
+            - { name: monolog.processor, handler: main }

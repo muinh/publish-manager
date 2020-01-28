@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- https://phpunit.de/manual/current/en/appendixes.configuration.html -->
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="http://schema.phpunit.de/5.3/phpunit.xsd"
+         backupGlobals="false"
+         colors="true"
+         bootstrap="vendor/autoload.php"
+         verbose="true"
+>
+    <php>
+        <ini name="error_reporting" value="-1" />
+        <server name="KERNEL_DIR" value="app/" />
+        <!-- Disable deprecation detection to be able run tests -->
+        <env name="SYMFONY_DEPRECATIONS_HELPER" value="disabled" />
+
+        <!-- ###+ aws/aws-sdk-php-symfony ### -->
+        <env name="AWS_KEY" value="not-a-real-key"/>
+        <env name="AWS_SECRET" value="@@not-a-real-secret"/>
+        <!-- ###- aws/aws-sdk-php-symfony ### -->
+
+        <!-- ###+ symfony/framework-bundle ### -->
+        <env name="APP_ENV" value="dev"/>
+        <env name="APP_SECRET" value="248d8696713b5387c328c0a45718d780"/>
+        <!-- env name="TRUSTED_PROXIES" value="127.0.0.1,127.0.0.2" -->
+        <!-- env name="TRUSTED_HOSTS" value="localhost,example.com" -->
+        <!-- ###- symfony/framework-bundle ### -->
+    </php>
+
+    <testsuites>
+        <testsuite name="CMS From Manager Test Suite">
+            <!-- Directory where your tests live -->
+            <directory>tests</directory>
+        </testsuite>
+    </testsuites>
+
+    <filter>
+        <whitelist>
+            <directory>src</directory>
+            <exclude>
+                <directory>src/*Bundle/Command</directory>
+                <directory>src/*Bundle/Event</directory>
+                <directory>src/*Bundle/Model</directory>
+                <directory>src/*Bundle/Controller</directory>
+                <directory>src/*Bundle/DataFixtures</directory>
+                <directory>src/*Bundle/Entity</directory>
+                <directory>src/*Bundle/Exception</directory>
+                <directory>src/*Bundle/Objects</directory>
+                <directory>src/*Bundle/Interfaces</directory>
+                <directory>src/*Bundle/Form</directory>
+                <directory>src/*Bundle/Menu</directory>
+                <directory>src/*Bundle/Repository</directory>
+                <directory>src/*Bundle/Resources</directory>
+            </exclude>
+        </whitelist>
+    </filter>
+
+    <logging>
+        <log type="coverage-html" target="web/coverage/" lowUpperBound="35" highLowerBound="70"/>
+    </logging>
+</phpunit>
